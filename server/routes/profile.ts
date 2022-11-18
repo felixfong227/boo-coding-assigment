@@ -1,28 +1,31 @@
 'use strict';
 
 import express from 'express';
+import { z } from 'zod';
+import User from '../model/user';
+import apiRouter from './api';
 const router = express.Router();
 
-const profiles = [
-    {
-        'id': 1,
-        'name': 'A Martinez',
-        'description': 'Adolph Larrue Martinez III.',
-        'mbti': 'ISFJ',
-        'enneagram': '9w3',
-        'variant': 'sp/so',
-        'tritype': 725,
-        'socionics': 'SEE',
-        'sloan': 'RCOEN',
-        'psyche': 'FEVL',
-        'image': 'https://soulverse.boo.world/images/1.png',
+router.get('/:id', async function(req, res) {
+    const uidSchema = z.number().positive();
+    const uid = uidSchema.safeParse(
+        parseInt(req.params.id)
+    );
+    if(!uid.success) {
+        res.status(400).send(uid.error.message);
+        return;
     }
-];
-
-router.get('/*', function(req, res) {
+    const user = new User();
+    const profile = await user.getUserById(uid.data);
+    if(!profile) {
+        res.status(404).send('User not found');
+        return;
+    }
     res.render('profile_template', {
-        profile: profiles[0],
+        profile,
     });
 });
+
+router.use('/api', apiRouter);
 
 export default router;
