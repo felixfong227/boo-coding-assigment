@@ -1,6 +1,7 @@
 'use strict';
 
-const express = require('express');
+import express from 'express';
+import profileRouter from './routes/profile';
 const app = express();
 const port =  process.env.PORT || 3000;
 
@@ -8,8 +9,8 @@ const port =  process.env.PORT || 3000;
 app.set('view engine', 'ejs');
 
 // routes
-app.use('/', require('./routes/profile')());
+app.use('/', profileRouter);
 
 // start server
-const server = app.listen(port);
+app.listen(port);
 console.log('Express started. Listening on %s', port);
