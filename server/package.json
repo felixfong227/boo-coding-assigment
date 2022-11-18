@@ -5,21 +5,27 @@
   "main": "app.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsc --watch app.ts"
+    "dev": "nodemon app.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.1",
+    "dayjs": "^1.11.6",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
-    "typescript": "^4.9.3"
+    "mongodb-memory-server": "^8.10.0",
+    "mongoose": "^6.7.2",
+    "typescript": "^4.9.3",
+    "zod": "^3.19.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.14",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.43.0",
     "eslint": "^8.27.0",
+    "nodemon": "^2.0.20",
     "ts-node": "^10.9.1"
   }
 }
