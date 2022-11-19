@@ -66,12 +66,19 @@ type IVote = {
     value: TZodiac,
 }
 
+export interface ILike {
+    creation_time: number;
+    liked_by_owner_id: number;
+    liked_by_owner_profile: IUser;
+}
+
 export interface IComment {
     creation_date: number;
     content: string;
     owner_id: number;
     owner_profile: IUser;
     votes?: IVote[];
+    likes: ILike[];
 }
 
 const commentSchema = new Schema<IComment>({
@@ -97,6 +104,24 @@ const commentSchema = new Schema<IComment>({
     votes: {
         type: Array,
         required: false,
+    },
+    likes: {
+        type: [
+            {
+                creation_time: {
+                    type: Number,
+                },
+                liked_by_owner_id: {
+                    type: Number,
+                },
+                liked_by_owner_profile: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'User',
+                },
+            }
+        ],
+        required: true,
+        default: [],
     }
 });
 
