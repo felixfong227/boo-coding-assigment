@@ -68,6 +68,7 @@ type IVote = {
 export interface IComment {
     creation_date: number;
     content: string;
+    owner_id: number;
     votes?: IVote[];
 }
 
@@ -79,6 +80,10 @@ const commentSchema = new Schema<IComment>({
     },
     content: {
         type: String,
+        required: true,
+    },
+    owner_id: {
+        type: Number,
         required: true,
     },
     votes: {
