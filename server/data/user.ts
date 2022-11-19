@@ -14,6 +14,7 @@ export interface IUser {
     sloan: string;
     psyche: string;
     image: string;
+    _id: string;
 }
 
 const userSchema = new Schema<IUser>({

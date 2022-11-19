@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import { IUser } from './user';
 
 export enum TMBTI {
     'INFP' = 'INFP',
@@ -69,6 +70,7 @@ export interface IComment {
     creation_date: number;
     content: string;
     owner_id: number;
+    owner_profile: IUser;
     votes?: IVote[];
 }
 
@@ -84,7 +86,13 @@ const commentSchema = new Schema<IComment>({
     },
     owner_id: {
         type: Number,
+        ref: 'User',
         required: true,
+    },
+    owner_profile: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'User',
     },
     votes: {
         type: Array,

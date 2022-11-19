@@ -38,8 +38,8 @@ export default class Comment {
             return safeOpt.error;
         }
         const { content, votes, uid } = safeOpt.data;
-        const isUserExists = await this.checkUserExists(uid);
-        if(!isUserExists) {
+        const owner = await this.User.getUserById(uid);
+        if(!owner) {
             return new ZodError([
                 {
                     code: ZodIssueCode.custom,
@@ -54,12 +54,16 @@ export default class Comment {
             content,
             votes,
             owner_id: uid,
+            owner_profile: owner._id,
         });
         const newComment = await comment.save();
         return newComment;
     }
     public async getCommentsByUserId(uid: number): Promise<IComment[]> {
-        const comments = ModelComment.find({}).where('owner_id').equals(uid);
+        const comments = ModelComment.find()
+            .where('owner_id')
+            .equals(uid)
+            .populate('owner_profile');
         return comments;
     }
 }
