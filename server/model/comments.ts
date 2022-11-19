@@ -1,5 +1,5 @@
 import z, { ZodError, ZodIssueCode } from 'zod';
-import { TMBTI, TEnneagram, TZodiac, IComment, ModelComment } from '../data/comment';
+import { TMBTI, TEnneagram, TZodiac, IComment, ModelComment, ILike } from '../data/comment';
 import User from './user';
 
 const commentSchema = z.object({
@@ -29,10 +29,7 @@ export default class Comment {
     public constructor(
         private readonly User: User,
     ) {}    
-    private checkUserExists(uid: number): Promise<boolean> {
-        return this.User.checkUserExists(uid);
-    }
-    public async createComment(opt: CreateCommentOptions): Promise<IComment | z.ZodError> {
+    public async createComment(opt: CreateCommentOptions): Promise<IComment | ZodError> {
         const safeOpt = commentSchema.safeParse(opt);
         if(!safeOpt.success) {
             return safeOpt.error;
@@ -65,5 +62,39 @@ export default class Comment {
             .equals(uid)
             .populate('owner_profile');
         return comments;
+    }
+    public async likeAComment(commentId: string, uid: number): Promise<ILike | ZodError> {
+        const owner = await this.User.getUserById(uid);
+        if(!owner) {
+            return new ZodError([
+                {
+                    code: ZodIssueCode.custom,
+                    path: ['uid'],
+                    message: 'User does not exist.',
+                }
+            ]);
+        }
+        const comment = new ModelComment({
+            _id: commentId,
+        });
+        await comment.updateOne({
+            $push: {
+                likes: {
+                    owner_id: uid,
+                    owner_profile: owner,
+                }
+            }
+        });
+        return {
+            creation_time: Date.now(),
+            liked_by_owner_id: uid,
+            liked_by_owner_profile: owner,
+        };
+    }
+    public async getLikesByCommentId(commentId: string): Promise<ILike[] | null> {
+        const likes = await ModelComment.findOne<ILike[]>({
+            _id: commentId,
+        }, 'likes');
+        return likes;
     }
 }
