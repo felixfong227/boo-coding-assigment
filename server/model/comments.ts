@@ -58,4 +58,8 @@ export default class Comment {
         const newComment = await comment.save();
         return newComment;
     }
+    public async getCommentsByUserId(uid: number): Promise<IComment[]> {
+        const comments = ModelComment.find({}).where('owner_id').equals(uid);
+        return comments;
+    }
 }
