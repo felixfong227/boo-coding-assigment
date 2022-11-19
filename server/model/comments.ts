@@ -82,24 +82,24 @@ export default class Comment {
         }
         if(sorting) {
             switch (sorting) {
-            case 'best': {
+                case 'best': {
                 // sort by most likes
-                aggreatePipeline.push({
-                    $sort: {
-                        'likes': -1,
-                    }
-                });
-                break;
-            }
-            case 'recent': {
+                    aggreatePipeline.push({
+                        $sort: {
+                            'likes': -1,
+                        }
+                    });
+                    break;
+                }
+                case 'recent': {
                 // sort by most recent
-                aggreatePipeline.push({
-                    $sort: {
-                        'creation_date': -1,
-                    }
-                });
-                break;
-            }
+                    aggreatePipeline.push({
+                        $sort: {
+                            'creation_date': -1,
+                        }
+                    });
+                    break;
+                }
             }
         }
         
