@@ -1,5 +1,6 @@
+import { PipelineStage } from 'mongoose';
 import z, { ZodError, ZodIssueCode } from 'zod';
-import { TMBTI, TEnneagram, TZodiac, IComment, ModelComment, ILike } from '../data/comment';
+import { TMBTI, TEnneagram, TZodiac, IComment, ModelComment, ILike, TPersonalitySystem } from '../data/comment';
 import User from './user';
 
 const commentSchema = z.object({
@@ -23,6 +24,12 @@ const commentSchema = z.object({
     ).max(3, 'You cannot vote more than 3 personalities traits.').optional(),
 });
 type CreateCommentOptions = z.infer<typeof commentSchema>;
+
+type GetCommentsByUserIdOptions = {
+    filter?: TPersonalitySystem;
+    sorting?: 'best' | 'recent';
+    limit?: number;
+}
 
 export default class Comment {
     
@@ -55,6 +62,60 @@ export default class Comment {
         });
         const newComment = await comment.save();
         return newComment;
+    }
+    public async getComments(arg: GetCommentsByUserIdOptions): Promise<IComment[]> {
+        const { filter, sorting, limit = 10 } = arg;
+
+        const aggreatePipeline: PipelineStage[] = [];
+        
+        if(filter) {
+            // sort by personality system, e.g. mbti, enneagram, zodiac
+            aggreatePipeline.push({
+                $match: {
+                    votes: {
+                        $elemMatch: {
+                            type: filter,
+                        }
+                    }
+                }
+            });
+        }
+        if(sorting) {
+            switch (sorting) {
+            case 'best': {
+                // sort by most likes
+                aggreatePipeline.push({
+                    $sort: {
+                        'likes': -1,
+                    }
+                });
+                break;
+            }
+            case 'recent': {
+                // sort by most recent
+                aggreatePipeline.push({
+                    $sort: {
+                        'creation_date': -1,
+                    }
+                });
+                break;
+            }
+            }
+        }
+        
+        // default sorting is by most recent with all categories
+        if(aggreatePipeline.length < 0) {
+            aggreatePipeline.push({
+                $sort: {
+                    'creation_date': -1,
+                }
+            });
+        }
+        
+        const comments = await ModelComment.aggregate(aggreatePipeline).limit(limit);
+        
+        return comments;
+        
     }
     public async getCommentsByUserId(uid: number): Promise<IComment[]> {
         const comments = ModelComment.find()
