@@ -1,6 +1,4 @@
 import { model, Schema } from 'mongoose';
-import { Dayjs } from 'dayjs';
-import { object, string } from 'zod';
 
 export enum TMBTI {
     'INFP' = 'INFP',
@@ -56,25 +54,26 @@ export enum TZodiac {
     'Pisces' = 'Pisces',
 }
 
-const zCommentContentSchema = object({
-    content: string()
-        .min(1, 'Comment must be at least one character long.')
-        .max(1000, 'Comment must not be longer than 1000 characters.'),
-});
+type IVote = {
+    type: 'mbti',
+    value: TMBTI,
+} | {
+    type: 'enneagram',
+    value: TEnneagram,
+} | {
+    type: 'zodiac',
+    value: TZodiac,
+}
 
-interface IComment {
-    creation_date: Dayjs;
+export interface IComment {
+    creation_date: number;
     content: string;
-    votes?: {
-        mbti: TMBTI;
-        enneagram: TEnneagram;
-        zodiac: TZodiac;
-    }[];
+    votes?: IVote[];
 }
 
 const commentSchema = new Schema<IComment>({
     creation_date: {
-        type: Date,
+        type: Number,
         default: Date.now,
         required: true
     },
@@ -82,6 +81,10 @@ const commentSchema = new Schema<IComment>({
         type: String,
         required: true,
     },
+    votes: {
+        type: Array,
+        required: false,
+    }
 });
 
 export const ModelComment = model('Comment', commentSchema);
