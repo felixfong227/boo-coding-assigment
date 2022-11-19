@@ -23,6 +23,10 @@ export default class User {
         if(id === 0) return 1;
         return id + 1;
     }
+    public async checkUserExists(id: number): Promise<boolean> {
+        const user = await this.getUserById(id);
+        return Boolean(user);
+    }
     public async createUser(opt: CreateUserOptions): Promise<IUser | z.ZodError> {
         const safeOpt = userSchema.safeParse(opt);
         if(!safeOpt.success) {

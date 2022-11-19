@@ -1,10 +1,14 @@
 import express from 'express';
 import { ZodError } from 'zod';
 import Comment from '../../model/comments';
+import User from '../../model/user';
 const router = express.Router();
 
 router.post('/', async function(req, res) {
-    const comment = new Comment();
+    const user = new User();
+    const comment = new Comment(
+        user,
+    );
     const newComment = await comment.createComment({
         ...req.body,
     });
