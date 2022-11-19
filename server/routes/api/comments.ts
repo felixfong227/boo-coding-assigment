@@ -2,6 +2,7 @@ import express from 'express';
 import { z, ZodError } from 'zod';
 import Comment from '../../model/comments';
 import User from '../../model/user';
+import { TPersonalitySystem } from '../../data/comment';
 const router = express.Router();
 
 router.post('/', async function(req, res) {
@@ -79,6 +80,35 @@ router.get('/:uid', async function(req, res) {
     }
     const commentsBelongToUser = await comment.getCommentsByUserId(uid.data);
     return res.status(200).json(commentsBelongToUser);
+});
+
+
+router.get('/', async function(req, res) {
+    const user = new User();
+    const comment = new Comment(
+        user,
+    );
+    const filterSchema = z.nativeEnum(TPersonalitySystem).optional();
+    const sortingSchema = z.enum([
+        'recent',
+        'best',
+    ]).optional();
+    
+    const filter = filterSchema.safeParse(req.query.filter);
+    const sorting = sortingSchema.safeParse(req.query.sorting);
+    
+    if(!filter.success) {
+        return res.status(400).json(filter.error);
+    }
+    if(!sorting.success) {
+        return res.status(400).json(sorting.error);
+    }
+    
+    const listOfComments = await comment.getComments({
+        filter: filter.data,
+        sorting: sorting.data,
+    });
+    return res.status(200).json(listOfComments);
 });
 
 export default router;
