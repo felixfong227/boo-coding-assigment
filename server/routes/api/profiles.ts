@@ -9,7 +9,6 @@ router.post('/', async function(req, res) {
         ...req.body,
     });
     if(newUser instanceof ZodError) {
-        console.error(newUser);
         return res.status(400).json(newUser.issues);
     }
     return res.status(201).json(newUser);
