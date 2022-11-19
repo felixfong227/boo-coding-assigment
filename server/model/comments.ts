@@ -30,6 +30,12 @@ type GetCommentsByUserIdOptions = {
     sorting?: 'best' | 'recent';
     limit?: number;
 }
+const getCommentsSortingSchema = z.union([
+    z.literal('best'),
+    z.literal('recent'),
+]);
+
+const getCommentsFilterSchema = z.nativeEnum(TPersonalitySystem);
 
 export default class Comment {
     
@@ -63,25 +69,41 @@ export default class Comment {
         const newComment = await comment.save();
         return newComment;
     }
-    public async getComments(arg: GetCommentsByUserIdOptions): Promise<IComment[]> {
+    public async getComments(arg: GetCommentsByUserIdOptions): Promise<IComment[] | ZodError> {
         const { filter, sorting, limit = 10 } = arg;
+
+        const safeLimit = z.number().min(1).max(100).safeParse(limit);
+        
+        if(!safeLimit.success) {
+            return safeLimit.error;
+        }
 
         const aggreatePipeline: PipelineStage[] = [];
         
         if(filter) {
+            const safeFilter = getCommentsFilterSchema.safeParse(filter);
+            if(!safeFilter.success) {
+                return safeFilter.error;
+            }
+
             // sort by personality system, e.g. mbti, enneagram, zodiac
             aggreatePipeline.push({
                 $match: {
                     votes: {
                         $elemMatch: {
-                            type: filter,
+                            type: safeFilter.data,
                         }
                     }
                 }
             });
         }
         if(sorting) {
-            switch (sorting) {
+            const safeSorting = getCommentsSortingSchema.safeParse(sorting);
+            if(!safeSorting.success) {
+                return safeSorting.error;
+            }
+
+            switch (safeSorting.data) {
                 case 'best': {
                 // sort by most likes
                     aggreatePipeline.push({
@@ -104,15 +126,14 @@ export default class Comment {
         }
         
         // default sorting is by most recent with all categories
-        if(aggreatePipeline.length < 0) {
+        if(aggreatePipeline.length <= 0) {
             aggreatePipeline.push({
                 $sort: {
                     'creation_date': -1,
                 }
             });
         }
-        
-        const comments = await ModelComment.aggregate(aggreatePipeline).limit(limit);
+        const comments = await ModelComment.aggregate(aggreatePipeline).limit(safeLimit.data);
         
         return comments;
         
@@ -125,6 +146,7 @@ export default class Comment {
         return comments;
     }
     public async likeAComment(commentId: string, uid: number): Promise<ILike | ZodError> {
+        console.dir(this.User, { depth: 10 });
         const owner = await this.User.getUserById(uid);
         if(!owner) {
             return new ZodError([
