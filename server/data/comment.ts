@@ -66,6 +66,12 @@ type IVote = {
     value: TZodiac,
 }
 
+export enum TPersonalitySystem {
+    'mbti' = 'mbti',
+    'enneagram' = 'enneagram',
+    'zodiac' = 'zodiac',
+}
+
 export interface ILike {
     creation_time: number;
     liked_by_owner_id: number;
