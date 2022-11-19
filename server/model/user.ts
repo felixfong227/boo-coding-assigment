@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import z from 'zod';
 import { TMBTI, TEnneagram } from '../data/comment';
-import { DataUser, IUser } from '../data/user';
+import { ModelUser, IUser } from '../data/user';
 
 const userSchema = z.object({
     name: z.string(),
@@ -19,7 +19,7 @@ type CreateUserOptions = z.infer<typeof userSchema>;
 
 export default class User {
     private async idLookUp(): Promise<number> {
-        const id = await DataUser.countDocuments();
+        const id = await ModelUser.countDocuments();
         if(id === 0) return 1;
         return id + 1;
     }
@@ -33,7 +33,7 @@ export default class User {
             return safeOpt.error;
         }
         const { name, description, mbti, enneagram, variant, tritype, socionics, sloan, psyche, image } = safeOpt.data;
-        const user = new DataUser({
+        const user = new ModelUser({
             id: await this.idLookUp(),
             creation_date: dayjs().unix(),
             name,
@@ -51,7 +51,7 @@ export default class User {
         return newUser;
     }
     public async getUserById(id: number): Promise<IUser | null> {
-        return await DataUser.findOne({
+        return await ModelUser.findOne({
             id,
         });
     }
