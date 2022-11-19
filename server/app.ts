@@ -2,7 +2,7 @@
 
 import express from 'express';
 import mongoose from 'mongoose';
-import profileRouter from './routes/profile';
+import indexRouter from './routes/index';
 import { mongoDB } from './utils/db';
 import userSeed from './seed/users';
 import bodyParser from 'body-parser';
@@ -24,7 +24,7 @@ async function main() {
     app.use(bodyParser.json());
     
     // routes
-    app.use('/', profileRouter);
+    app.use('/', indexRouter);
 	
     // start server
     app.listen(port);
