@@ -574,7 +574,7 @@ describe('Get a list of comments', () => {
 
 });
 
-describe('Comment Liking', () => {
+describe('Comment liking', () => {
 
     const user = new User();
     
@@ -611,6 +611,69 @@ describe('Comment Liking', () => {
         const comment = new Comment(user);
         const likedComment = await comment.likeAComment(dummyComment1._id.toString(), 999);
         expect(likedComment).toBeInstanceOf(ZodError);
+        await mongoose.disconnect();
+        await db.stop();
+    });
+
+});
+
+describe('Create comment', () => {
+    const user = new User();
+    
+    test('should return IComment, creating a normal comment with no votes', async () => {
+        const { db, dummyUser1 } = await setup();
+        const comment = new Comment(user);
+        const createdComment = await comment.createComment({
+            content: 'Dummy comment 4',
+            uid: dummyUser1.id,
+        });
+        expect(createdComment).toMatchObject({
+            __v: 0,
+            _id: expect.anything(),
+            content: 'Dummy comment 4',
+            creation_date: expect.anything(),
+            owner_id: dummyUser1.id,
+            owner_profile: expect.anything(),
+            likes: [],
+            votes: [],
+        });
+        await mongoose.disconnect();
+        await db.stop();
+    });
+
+    test('should return ZodError, creating comment with unknown user ID', async () => {
+        const { db } = await setup();
+        const comment = new Comment(user);
+        const createdComment = await comment.createComment({
+            content: 'dummy',
+            uid: 999,
+        });
+        expect(createdComment).toBeInstanceOf(ZodError);
+        await mongoose.disconnect();
+        await db.stop();
+    });
+    
+});
+
+describe('Get comment by user ID', () => {
+    const user = new User();
+
+    test('Should return one IComment', async () => {
+        const { db, dummyUser1 } = await setup();
+        const comment = new Comment(user);
+        const comments = await comment.getCommentsByUserId(dummyUser1.id);
+        expect(comments).toMatchObject([
+            {
+                __v: 0,
+                _id: expect.anything(),
+                content: 'Dummy comment 1',
+                creation_date: expect.anything(),
+                owner_id: dummyUser1.id,
+                owner_profile: expect.anything(),
+                likes: [],
+                votes: [],
+            }
+        ]);
         await mongoose.disconnect();
         await db.stop();
     });
